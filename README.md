@@ -21,4 +21,6 @@ C:\Users\Win10\Desktop\pc_wechat\dist>search_wecaht_key.exe
 2023-10-26 13:52:01,888 - search_wecaht_key.py- INFO - eb204727b80a44dea374ee92df27fb06ef7218098ae7473bafc695b9b5a9xxxx  
  ```
 
-本程序参考了：[https://github.com/0xlane/wechat-dump-rs](https://github.com/0xlane/wechat-dump-rs)的代码实现。
+本程序参考了：[https://github.com/0xlane/wechat-dump-rs](https://github.com/0xlane/wechat-dump-rs)的代码实现。  
+
+  
