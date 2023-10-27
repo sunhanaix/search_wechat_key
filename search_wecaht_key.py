@@ -59,7 +59,10 @@ def get_wechat_key(): #遍历微信内存，去暴力找key
         sys.exit(-1)
     db_file=misc_dbs[0]  #在wechat.exe打开文件列表里面，找到最后文件名是Misc.db的，用这个做db_file,做校验
     mylog.info(f"db_file:{db_file}")
-    min_address=min([m.EntryPoint for m in pm.list_modules() if m.EntryPoint is not None]) #遍历wechat载入的所有模块（包括它自己），找到最小的地址
+    min_entrypoint=min([m.EntryPoint for m in pm.list_modules() if m.EntryPoint is not None]) #遍历wechat载入的所有模块（包括它自己），找到所有模块最小的入口地址
+    min_base=min([m.lpBaseOfDll for m in pm.list_modules() if m.lpBaseOfDll is not None]) #遍历wechat载入的所有模块（包括它自己），找到所有模块最小的基址
+    min_address=min(min_entrypoint,min_base) #找到wechat最低的内存地址段
+    mylog.info(f"min_address:{min_address:X}")
     phone_addr=None
     for phone_type in phone_types:
         res=pm.pattern_scan_module(phone_type,"wechatwin.dll",return_multiple=True) #只在wechatwin.dll这个模块的内存地址段中去寻找电话类型的地址
@@ -86,9 +89,12 @@ def get_wechat_key(): #遍历微信内存，去暴力找key
             key_addr = struct.unpack('<Q', key_addr_bytes)[0]
             #mylog.info(f"尝试使用64位寻址去找key,i:{i:X},key_addr:{key_addr:X}")
         #mylog.info(f"{i=},{key_addr=}")
-        if key_addr <min_address: #如果取得的指针在最小的内存内置范围之外，跳过
-            continue
+        #if key_addr <min_address:   #key_pointer_addr一定是>min_address的，但是key_addr可能是new出来的，不一定，因此这里要这样判断的话，就是个bug，会把正确地址给跳跑了
+            # 如果取得的指针在最小的内存内置范围之外，跳过
+            #print("取得的指针在最小的内存内置范围之外，跳过")
+            #continue
         if not is_writable_region(pm.process_id,key_addr): #要是这个指针指向的区域不能写，那也跳过
+            #print("这个指针指向的区域不能写，那也跳过")
             continue
         key=pm.read_bytes(key_addr,32)
         if key.count(0x00)>=5: #如果一个key里面有5个0x00的话，就很不像是一个sqlite的key，就跳过
